@@ -29,23 +29,45 @@ The application is built with a modern, server-centric web architecture using th
 
 *   **Frontend:** Built with **Next.js** and **React**, providing a fast, server-rendered user interface. **ShadCN UI** and **Tailwind CSS** are used for a modern, responsive, and aesthetically pleasing design system.
 *   **Backend & AI Logic:** **Genkit**, an open-source AI framework, is used to define and orchestrate the AI-powered workflows. These "flows" run on the server and are responsible for all generative tasks. They are invoked from the frontend using Next.js Server Actions.
-*   **AI Model:** The backend leverages Google's powerful **Gemini 2.0 Flash** model through the `googleAI` plugin for Genkit to understand images and generate text.
+*   **AI Model:** The backend leverages Google's powerful **Gemini 2.0 Flash** model through the `googleAI` plugin for Genkit. This is a fast, efficient, and multimodal model capable of understanding both text and images, making it ideal for this application.
 
 ## 4. Algorithm
 
-The core logic is divided into two main AI flows, orchestrated by a server action:
+The core of TrendifyAI relies on a pre-trained generative model rather than a custom-trained algorithm. The process is centered around effective **prompt engineering** and structured **AI flows**.
 
-1.  **`generateSocialMediaCaptionFlow`**:
-    *   **Input**: An image (as a data URI) and the target platform name (e.g., "Instagram").
-    *   **Process**: A prompt is sent to the Gemini model, including the image and the platform. The model is instructed to act as a social media expert and generate a suitable caption and a base list of relevant hashtags.
-    *   **Output**: A structured object containing the generated caption and hashtags.
+### 4.1. Algorithm Selection
+**Gemini 2.0 Flash** was chosen for several key reasons:
+*   **Multimodality:** It can natively process both image and text inputs in a single prompt, which is essential for analyzing the user's photo.
+*   **Performance:** As a "Flash" model, it's optimized for speed and lower latency, ensuring a responsive user experience.
+*   **Instruction Following:** The model is highly capable of following complex instructions and providing structured output (like JSON), which is enforced via Zod schemas in the Genkit flows.
 
-2.  **`incorporateTrendingTopicsFlow`**:
-    *   **Input**: The base hashtags from the first flow and the target platform.
-    *   **Process**: This flow uses a Genkit **Tool** (`getTrendingTopics`). The AI is prompted to refine the initial hashtag list by incorporating relevant trending topics, which it fetches by calling the tool. This simulates integrating real-time data into the generation process.
-    *   **Output**: A final, optimized list of hashtags.
+### 4.2. Data Input
+The primary inputs from the user are:
+1.  **Image Data:** The uploaded photo is converted into a **Base64-encoded data URI**. This format allows the image to be embedded directly into the prompt sent to the model.
+2.  **Platform Selection:** A simple string indicating the target social media platform (e.g., `"Instagram"`, `"X"`).
 
-The main server action `generateContent` coordinates these two flows to deliver the final caption and hashtags to the user interface.
+### 4.3. Training Process (Prompt Engineering)
+This application does not involve training or fine-tuning a model. Instead, it relies on **prompt engineering**. The prompts, defined in the Genkit flows (`src/ai/flows/*.ts`), are carefully crafted instructions that guide the pre-trained Gemini model to perform the desired task.
+
+For example, the `generateSocialMediaCaptionPrompt` instructs the AI to:
+*   Act as a social media expert.
+*   Analyze the provided image (`{{media url=photoDataUri}}`).
+*   Consider the target platform (`{{platform}}`).
+*   Generate a caption and a list of hashtags, returning them in a specific JSON structure.
+
+This approach leverages the vast knowledge already within the model without the need for a custom dataset or training pipeline.
+
+### 4.4. Prediction Process
+The end-to-end prediction is a two-step process orchestrated by the `generateContent` server action:
+1.  **Initial Content Generation (`generateSocialMediaCaptionFlow`):**
+    *   The user's image and platform choice are sent to this flow.
+    *   The Gemini model analyzes the inputs and generates a contextually relevant caption and a base list of hashtags.
+2.  **Hashtag Refinement (`incorporateTrendingTopicsFlow`):**
+    *   The base hashtags and platform name are passed to this second flow.
+    *   This flow is designed to use a **Tool** (`getTrendingTopics`), which simulates fetching real-time data. The model is prompted to refine the initial hashtag list by integrating these trending topics, ensuring the suggestions are timely and relevant.
+    *   The flow returns the final, optimized list of hashtags.
+
+The final caption and refined hashtags are then returned to the user interface.
 
 ## 5. Deployment
 
