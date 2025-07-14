@@ -29,7 +29,7 @@ The application is built with a modern, server-centric web architecture using th
 
 *   **Frontend:** Built with **Next.js** and **React**, providing a fast, server-rendered user interface. **ShadCN UI** and **Tailwind CSS** are used for a modern, responsive, and aesthetically pleasing design system.
 *   **Backend & AI Logic:** **Genkit**, an open-source AI framework, is used to define and orchestrate the AI-powered workflows. These "flows" run on the server and are responsible for all generative tasks. They are invoked from the frontend using Next.js Server Actions.
-*   **AI Model:** The backend leverages Google's powerful **Gemini** multimodal models through the `googleAI` plugin for Genkit to understand images and generate text.
+*   **AI Model:** The backend leverages Google's powerful **Gemini 2.0 Flash** model through the `googleAI` plugin for Genkit to understand images and generate text.
 
 ## 4. Algorithm
 
